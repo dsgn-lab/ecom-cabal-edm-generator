@@ -330,6 +330,20 @@
           </button>
         </div>
 
+        <div id="mobile-layout-section" class="hidden">
+          <div class="section-label" style="margin-bottom:10px;">Mobile Layout</div>
+          <div class="type-tabs" style="margin-bottom:20px;">
+            <button class="type-tab active" id="mlayout-full" onclick="setMobileLayout('full')">
+              Full Width
+              <span>1 per row on mobile</span>
+            </button>
+            <button class="type-tab" id="mlayout-grid" onclick="setMobileLayout('grid')">
+              2×2 Grid
+              <span>2 per row on mobile</span>
+            </button>
+          </div>
+        </div>
+
         <div class="section-label">URL</div>
 
         <div class="url-row">
@@ -481,7 +495,28 @@
           <input type="text" id="b-shipping" value="Free shipping on orders $75+" />
         </div>
 
-        <div class="section-label">Guarantees</div>
+        <div class="section-label">Typography</div>
+        <p class="field-hint" style="margin-bottom:12px;">Font sizes (px) applied across all email outputs.</p>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:4px;">
+          <div class="field" style="margin-bottom:0;">
+            <label>Headline</label>
+            <input type="number" id="b-size-headline" value="36" min="22" max="60" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Body Copy</label>
+            <input type="number" id="b-size-body" value="14" min="10" max="20" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>CTA Button</label>
+            <input type="number" id="b-size-cta" value="11" min="9" max="16" />
+          </div>
+          <div class="field" style="margin-bottom:0;">
+            <label>Product Title</label>
+            <input type="number" id="b-size-product" value="11" min="9" max="16" />
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:20px;">Guarantees</div>
         <p class="field-hint" style="margin-bottom:10px;">Four trust badges shown at the bottom of every email.</p>
 
         <div class="guarantee-row">
@@ -556,6 +591,7 @@
 let currentType    = 'product';
 let isAbandoned    = true;
 let isPostPurchase = false;
+let mobileLayout   = 'full';
 let allImages      = [];
 let selected       = { hero: 0, mid: 1, third: 2, heroCol: 0 };
 let collectionData = null;
@@ -578,6 +614,10 @@ function getBrand() {
     accent:   el('ch-accent').value.trim()  || '#F1E5D4',
     sand:     el('ch-sand').value.trim()    || '#EDE8E0',
     shipping: el('b-shipping').value.trim() || 'Free shipping on orders $75+',
+    sizeHeadline: parseInt(el('b-size-headline').value) || 36,
+    sizeBody:     parseInt(el('b-size-body').value)     || 14,
+    sizeCta:      parseInt(el('b-size-cta').value)      || 11,
+    sizeProduct:  parseInt(el('b-size-product').value)  || 11,
     guarantees: [
       { l1: el('g1-l1').value, l2: el('g1-l2').value },
       { l1: el('g2-l1').value, l2: el('g2-l2').value },
@@ -693,10 +733,17 @@ function setMode(mode) {
   el('panel-brand').classList.toggle('hidden', mode !== 'brand');
 }
 
+function setMobileLayout(layout) {
+  mobileLayout = layout;
+  el('mlayout-full').classList.toggle('active', layout === 'full');
+  el('mlayout-grid').classList.toggle('active', layout === 'grid');
+}
+
 function setType(type) {
   currentType = type;
   el('tab-product').classList.toggle('active', type === 'product');
   el('tab-collection').classList.toggle('active', type === 'collection');
+  el('mobile-layout-section').classList.toggle('hidden', type !== 'collection');
   el('url-input').placeholder = type === 'product'
     ? 'https://yourstore.com/products/…'
     : 'https://yourstore.com/collections/…';
@@ -915,7 +962,7 @@ function tplCtaRow(b, href, ctaText) {
   return `
   <tr>
     <td style="padding:24px 24px 0 24px; background-color:${b.bg};">
-      <a href="${href}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:18px 32px; border-radius:2px; text-align:center;">
+      <a href="${href}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeCta}px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:18px 32px; border-radius:2px; text-align:center;">
         ${ctaText} &nbsp;&#8594;
       </a>
     </td>
@@ -989,8 +1036,10 @@ function tplDiscountBanner(b, code) {
 }
 
 function emailHead(b, isColl) {
+  const mobileHeadline = Math.max(22, Math.round(b.sizeHeadline * 0.72));
+  const mobileBody     = Math.min(17, b.sizeBody + 1);
   const collExtra = isColl ? `
-    .product-cell { width:100% !important; display:block !important; padding:0 0 24px 0 !important; }
+    .product-cell { width:${mobileLayout === 'grid' ? '50%' : '100%'} !important; display:${mobileLayout === 'grid' ? 'inline-block' : 'block'} !important; padding:${mobileLayout === 'grid' ? '0 4px 16px 4px' : '0 0 24px 0'} !important; vertical-align:top !important; box-sizing:border-box !important; }
     .product-cell a img { width:100% !important; max-width:100% !important; height:auto !important; }
     .product-grid-table { width:100% !important; }` : '';
   return `<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet" type="text/css" />
@@ -998,8 +1047,8 @@ function emailHead(b, isColl) {
   @media only screen and (max-width:620px) {
     .email-wrapper { width:100% !important; max-width:100% !important; }
     .mobile-padding { padding:28px 20px !important; }
-    .hero-overlay-text { font-size:26px !important; line-height:1.2 !important; }
-    .body-text { font-size:15px !important; line-height:1.8 !important; }
+    .hero-overlay-text { font-size:${mobileHeadline}px !important; line-height:1.2 !important; }
+    .body-text { font-size:${mobileBody}px !important; line-height:1.8 !important; }
     .trust-label { font-size:9px !important; }
     img { max-width:100% !important; height:auto !important; }${collExtra}
   }
@@ -1053,14 +1102,14 @@ function buildProduct() {
   <tr>
     <td style="padding:22px 28px 28px 28px; background-color:${b.accent};">
       <p style="margin:0 0 4px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.18em; text-transform:uppercase; color:${b.primary}80; line-height:1;">${label}</p>
-      <p class="hero-overlay-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:36px; font-weight:300; font-style:italic; line-height:1.15; color:${b.primary};">${headline}</p>
+      <p class="hero-overlay-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:${b.sizeHeadline}px; font-weight:300; font-style:italic; line-height:1.15; color:${b.primary};">${headline}</p>
     </td>
   </tr>
 
   <tr>
     <td class="mobile-padding" style="padding:40px 52px 28px 52px; background-color:${b.bg};">
       <p style="margin:0 0 10px 0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:20px; font-weight:300; color:#2C2C2A; text-align:center; line-height:1.5;">${greeting}</p>
-      <p class="body-text" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:14px; font-weight:300; color:#7A746E; text-align:center; line-height:1.8;">${body}</p>
+      <p class="body-text" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeBody}px; font-weight:300; color:#7A746E; text-align:center; line-height:1.8;">${body}</p>
     </td>
   </tr>
 
@@ -1069,7 +1118,7 @@ function buildProduct() {
       <table border="0" cellpadding="0" cellspacing="0" width="100%">
         <tr>
           <td align="center">
-            <a href="${imgHref}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:17px 32px; border-radius:2px; text-align:center;">${ctaText} &nbsp;&#8594;</a>
+            <a href="${imgHref}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeCta}px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:17px 32px; border-radius:2px; text-align:center;">${ctaText} &nbsp;&#8594;</a>
           </td>
         </tr>
         <tr>
@@ -1160,7 +1209,7 @@ function buildCollection() {
           <td class="product-cell" width="25%" valign="top" style="padding:0 6px 20px 6px;">
             <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block;">
               <img src="${imgSrc}" width="132" alt="${p.title}" style="width:100%; height:auto; display:block; border-radius:2px;" />
-              <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
+              <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeProduct}px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
               ${kicker ? `<p style="margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.05em; color:#A8A19A; line-height:1.4;">${kicker}</p>` : ''}
               <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; font-weight:300; line-height:1.5;">${priceHtml}</p>
             </a>
@@ -1189,14 +1238,14 @@ function buildCollection() {
   <tr>
     <td style="padding:22px 28px 28px 28px; background-color:${b.accent};">
       <p style="margin:0 0 4px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.18em; text-transform:uppercase; color:${b.primary}80; line-height:1;">${label}</p>
-      <p class="hero-overlay-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:36px; font-weight:300; font-style:italic; line-height:1.15; color:${b.primary};">${headline}</p>
+      <p class="hero-overlay-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:${b.sizeHeadline}px; font-weight:300; font-style:italic; line-height:1.15; color:${b.primary};">${headline}</p>
     </td>
   </tr>
 
   <tr>
     <td class="mobile-padding" style="padding:40px 52px 28px 52px; background-color:${b.bg};">
       <p style="margin:0 0 10px 0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:20px; font-weight:300; color:#2C2C2A; text-align:center; line-height:1.5;">${greeting}</p>
-      <p class="body-text" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:14px; font-weight:300; color:#7A746E; text-align:center; line-height:1.8;">${body}</p>
+      <p class="body-text" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeBody}px; font-weight:300; color:#7A746E; text-align:center; line-height:1.8;">${body}</p>
     </td>
   </tr>
 
@@ -1205,7 +1254,7 @@ function buildCollection() {
       <table border="0" cellpadding="0" cellspacing="0" width="100%">
         <tr>
           <td align="center">
-            <a href="${btnHref}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:17px 32px; border-radius:2px; text-align:center;">${ctaText} &nbsp;&#8594;</a>
+            <a href="${btnHref}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeCta}px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:17px 32px; border-radius:2px; text-align:center;">${ctaText} &nbsp;&#8594;</a>
           </td>
         </tr>
         <tr>
