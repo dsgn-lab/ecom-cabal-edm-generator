@@ -1217,10 +1217,9 @@ function buildCollection() {
       ? `{{ person.first_name|default:'' }}, thank you for your order.`
       : `{{ person.first_name|default:'' }}, we picked these for you.`;
 
-  function pad4(arr) { const a = [...arr]; while (a.length < 4) a.push(null); return a; }
-
-  function productCard(p) {
-    if (!p) return `<td width="25%" style="padding:0 6px 20px 6px;"></td>`;
+  function productCard(p, colWidth) {
+    const w = colWidth || '25%';
+    if (!p) return `<td width="${w}" style="padding:0 6px 20px 6px;"></td>`;
     const imgSrc    = p.images && p.images[0] ? abs(p.images[0].src).replace(/&width=\d+/, '&width=600') : '';
     const variantId = p.variants && p.variants[0] ? p.variants[0].id : null;
     const pUrl      = isPostPurchase && variantId
@@ -1247,12 +1246,13 @@ function buildCollection() {
       }
     }
 
+    const badgeFontSize = Math.max(7, Math.round(b.sizeProduct * 0.75));
     return `
-          <td class="product-cell" width="25%" valign="top" style="padding:0 6px 20px 6px;">
+          <td class="product-cell" width="${w}" valign="top" style="padding:0 6px 20px 6px;">
             <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block;">
               <div style="position:relative; line-height:0; font-size:0; border-radius:2px; overflow:hidden;">
                 <img src="${imgSrc}" width="132" alt="${p.title}" style="width:100%; height:auto; display:block;" />
-                ${badgeText ? `<span style="position:absolute; top:7px; left:7px; display:inline-block; background:rgba(255,255,255,0.95); font-family:Jost, Helvetica, Arial, sans-serif; font-size:7px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#1A1A1A; padding:3px 8px; line-height:1.6; white-space:nowrap;">${badgeText}</span>` : ''}
+                ${badgeText ? `<span style="position:absolute; top:7px; left:7px; display:inline-block; background:rgba(255,255,255,0.95); font-family:Jost, Helvetica, Arial, sans-serif; font-size:${badgeFontSize}px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#1A1A1A; padding:3px 8px; line-height:1.6; white-space:nowrap;">${badgeText}</span>` : ''}
               </div>
               <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeProduct}px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
               <p style="margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-weight:300; line-height:1.4;">${priceHtml}</p>
@@ -1264,7 +1264,7 @@ function buildCollection() {
   const countVal = parseInt(el('f-product-count')?.value) || 8;
   const shown    = products.slice(0, Math.min(countVal, products.length));
   const chunks   = [];
-  for (let i = 0; i < shown.length; i += 4) chunks.push(pad4(shown.slice(i, i + 4)));
+  for (let i = 0; i < shown.length; i += 4) chunks.push(shown.slice(i, i + 4));
 
   return `${emailHead(b, true)}
 
@@ -1326,14 +1326,17 @@ function buildCollection() {
     </td>
   </tr>
 
-  ${chunks.map((chunk, idx) => `
+  ${chunks.map((chunk, idx) => {
+    const colWidth = Math.floor(100 / chunk.length) + '%';
+    return `
   <tr>
     <td style="padding:0 16px ${idx === chunks.length - 1 ? '32px' : '0'} 16px; background-color:${b.bg};">
       <table class="product-grid-table" border="0" cellpadding="0" cellspacing="0" width="100%">
-        <tr>${chunk.map(productCard).join('')}</tr>
+        <tr>${chunk.map(p => productCard(p, colWidth)).join('')}</tr>
       </table>
     </td>
-  </tr>`).join('')}
+  </tr>`;
+  }).join('')}
 
   ${isAbandoned
     ? tplCartAndFooter(b, collUrl, ctaText)
