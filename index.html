@@ -420,6 +420,11 @@
               <label>Hero Image</label>
               <div class="image-grid" id="picker-hero-col"></div>
             </div>
+            <div class="field" style="margin-top:14px;">
+              <label>Product Badge — Tag Prefix <span class="field-hint" style="display:inline">(optional)</span></label>
+              <input type="text" id="f-tag-prefix" placeholder="e.g. badge: or material:" />
+              <p class="field-hint" style="margin-top:4px;">In Shopify, tag products with <strong>badge:Bestseller</strong> and enter <strong>badge:</strong> here — the value after the colon renders as a pill on each card.</p>
+            </div>
           </div>
 
           <hr class="hr">
@@ -1191,7 +1196,14 @@ function buildCollection() {
     const pUrl      = isPostPurchase && variantId
       ? `https://${domain}/cart/${variantId}:1${discountCode ? '?discount=' + encodeURIComponent(discountCode) : ''}`
       : `https://${domain}/products/${p.handle}`;
-    const kicker = p.product_type ? p.product_type.toLowerCase() : '';
+    const kicker     = p.product_type ? p.product_type.toLowerCase() : '';
+    const tagPrefix  = val('f-tag-prefix');
+    const tagBadge   = tagPrefix && p.tags
+      ? (p.tags.split ? p.tags.split(',') : p.tags)
+          .map(t => t.trim())
+          .find(t => t.toLowerCase().startsWith(tagPrefix.toLowerCase()))
+      : null;
+    const badgeText  = tagBadge ? tagBadge.slice(tagPrefix.length).replace(/^[:_\-\s]+/, '') : '';
 
     let priceHtml = '';
     if (p.variants && p.variants[0]) {
@@ -1199,9 +1211,9 @@ function buildCollection() {
       const price      = parseFloat(v.price);
       const compareAt  = parseFloat(v.compare_at_price);
       if (v.compare_at_price && compareAt > price) {
-        priceHtml = `<span style="text-decoration:line-through; color:#A8A19A; margin-right:5px;">$${compareAt.toFixed(2)}</span><span style="color:#B85C5C;">$${price.toFixed(2)}</span>`;
+        priceHtml = `<span style="text-decoration:line-through; color:#A8A19A; margin-right:4px; font-size:${Math.max(9, b.sizeProduct - 1)}px;">$${compareAt.toFixed(2)}</span><span style="color:#B85C5C; font-size:${b.sizeProduct}px;">$${price.toFixed(2)}</span>`;
       } else {
-        priceHtml = `<span style="color:${b.primary};">$${price.toFixed(2)}</span>`;
+        priceHtml = `<span style="color:${b.primary}; font-size:${b.sizeProduct}px;">$${price.toFixed(2)}</span>`;
       }
     }
 
@@ -1210,8 +1222,9 @@ function buildCollection() {
             <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block;">
               <img src="${imgSrc}" width="132" alt="${p.title}" style="width:100%; height:auto; display:block; border-radius:2px;" />
               <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeProduct}px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
-              ${kicker ? `<p style="margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.05em; color:#A8A19A; line-height:1.4;">${kicker}</p>` : ''}
-              <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; font-weight:300; line-height:1.5;">${priceHtml}</p>
+              <p style="margin:0 0 4px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-weight:300; line-height:1.4;">${priceHtml}</p>
+              ${kicker ? `<p style="margin:0 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.05em; color:#A8A19A; line-height:1.4;">${kicker}</p>` : ''}
+              ${badgeText ? `<p style="margin:2px 0 0 0; display:inline-block; font-family:Jost, Helvetica, Arial, sans-serif; font-size:8px; font-weight:400; letter-spacing:0.10em; text-transform:uppercase; color:${b.bg}; background:${b.primary}; padding:2px 6px; border-radius:1px; line-height:1.6;">${badgeText}</p>` : ''}
             </a>
           </td>`;
   }
