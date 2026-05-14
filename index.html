@@ -351,11 +351,11 @@
           <div class="type-tabs" style="margin-bottom:20px;">
             <button class="type-tab active" id="mlayout-full" onclick="setMobileLayout('full')">
               Full Width
-              <span>1 per row on mobile</span>
+              <span>1 col on mobile</span>
             </button>
             <button class="type-tab" id="mlayout-grid" onclick="setMobileLayout('grid')">
               2×2 Grid
-              <span>2 per row on mobile</span>
+              <span>2 col on mobile</span>
             </button>
           </div>
         </div>
@@ -1268,7 +1268,7 @@ function buildCollection() {
   const countVal = parseInt(el('f-product-count')?.value) || 8;
   const shown    = products.slice(0, Math.min(countVal, products.length));
   const chunks   = [];
-  for (let i = 0; i < shown.length; i += 4) chunks.push(shown.slice(i, i + 4));
+  for (let i = 0; i < shown.length; i += 2) chunks.push(shown.slice(i, i + 2));
 
   return `${emailHead(b, true)}
 
