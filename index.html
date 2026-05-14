@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>eCom Cabal · EDM Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;1,300&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Jost', Helvetica, sans-serif;
+      font-weight: 300;
+      background: #F5F0EA;
+      color: #1A1A1A;
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: #1A1A1A;
+      border-bottom: 1px solid #111;
+      padding: 0 32px;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .header-brand {
+      font-family: 'Jost', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      color: #fff;
+    }
+    .header-brand span {
+      font-weight: 300;
+      opacity: 0.45;
+    }
+    .header-div { width: 1px; height: 18px; background: rgba(255,255,255,0.15); }
+    .header-tag {
+      font-size: 9px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+
+    /* ── Layout ── */
+    .layout {
+      display: grid;
+      grid-template-columns: 360px 1fr;
+      min-height: calc(100vh - 56px);
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      background: white;
+      border-right: 1px solid #E8E3DC;
+      overflow-y: auto;
+      height: calc(100vh - 56px);
+      position: sticky;
+      top: 56px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ── Sidebar mode tabs ── */
+    .mode-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      border-bottom: 1px solid #E8E3DC;
+      flex-shrink: 0;
+    }
+    .mode-tab {
+      padding: 14px 8px;
+      border: none;
+      background: white;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #A8A19A;
+      text-align: center;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+    .mode-tab.active { color: #1A1A1A; border-bottom-color: #1A1A1A; }
+    .mode-tab:hover:not(.active) { color: #5A5550; }
+
+    .sidebar-panel { padding: 24px; flex: 1; overflow-y: auto; }
+    .sidebar-panel.hidden { display: none !important; }
+
+    /* ── Main ── */
+    .main { padding: 28px 32px; overflow-y: auto; }
+
+    /* ── Section labels ── */
+    .section-label {
+      font-size: 9px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(26,26,26,0.38);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: #EDE8E0; }
+
+    /* ── Template type tabs ── */
+    .type-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 20px; }
+    .type-tab {
+      padding: 11px 8px;
+      border: 1px solid #E8E3DC;
+      border-radius: 2px;
+      background: white;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 11px;
+      font-weight: 300;
+      color: #7A746E;
+      text-align: center;
+      letter-spacing: 0.05em;
+      transition: all 0.15s;
+      line-height: 1.3;
+    }
+    .type-tab span { display: block; font-size: 9px; opacity: 0.55; margin-top: 2px; }
+    .type-tab.active { background: #1A1A1A; color: white; border-color: #1A1A1A; }
+    .type-tab.active span { opacity: 0.4; }
+    .type-tab:hover:not(.active) { border-color: #A8A19A; color: #1A1A1A; }
+
+    /* ── URL row ── */
+    .url-row { display: flex; gap: 6px; margin-bottom: 6px; }
+    .url-row input {
+      flex: 1; padding: 10px 12px;
+      border: 1px solid #E8E3DC; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300;
+      color: #1A1A1A; outline: none; transition: border-color 0.15s; background: #FDFCFA;
+    }
+    .url-row input:focus { border-color: #1A1A1A; background: white; }
+    .url-row input::placeholder { color: #C0B8B0; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 10px 16px; border: none; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 10px; font-weight: 400;
+      letter-spacing: 0.14em; text-transform: uppercase; cursor: pointer;
+      transition: opacity 0.15s; white-space: nowrap;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn:hover:not(:disabled) { opacity: 0.82; }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .btn-dark { background: #1A1A1A; color: white; }
+    .btn-sand { background: #EDE8E0; color: #1A1A1A; }
+    .btn-full { width: 100%; justify-content: center; padding: 14px; font-size: 11px; }
+
+    /* ── Status ── */
+    .status-msg { font-size: 11px; color: #7A746E; min-height: 18px; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+    .status-msg.error { color: #AA4040; }
+    .status-msg.loading::before {
+      content: ''; display: inline-block; width: 10px; height: 10px;
+      border: 1.5px solid #C0B8B0; border-top-color: #1A1A1A;
+      border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Form fields ── */
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(26,26,26,0.4); margin-bottom: 5px; }
+    .field input, .field textarea {
+      width: 100%; padding: 9px 11px;
+      border: 1px solid #E8E3DC; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 12px; font-weight: 300;
+      color: #1A1A1A; background: #FDFCFA; outline: none; transition: border-color 0.15s; line-height: 1.5;
+    }
+    .field input:focus, .field textarea:focus { border-color: #1A1A1A; background: white; }
+    .field textarea { resize: vertical; min-height: 70px; }
+    .field-hint { font-size: 10px; color: #A8A19A; margin-top: 3px; }
+
+    /* ── Color pickers ── */
+    .color-field { margin-bottom: 12px; }
+    .color-field label { display: block; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(26,26,26,0.4); margin-bottom: 6px; }
+    .color-row { display: flex; gap: 8px; align-items: center; }
+    .color-row input[type="color"] {
+      width: 36px; height: 36px; padding: 2px; border: 1px solid #E8E3DC;
+      border-radius: 2px; cursor: pointer; background: white; flex-shrink: 0;
+    }
+    .color-hex {
+      flex: 1; padding: 9px 11px; border: 1px solid #E8E3DC; border-radius: 2px;
+      font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px;
+      color: #1A1A1A; background: #FDFCFA; outline: none; letter-spacing: 0.04em;
+    }
+    .color-hex:focus { border-color: #1A1A1A; background: white; }
+
+    /* ── Guarantee rows ── */
+    .guarantee-row { display: grid; grid-template-columns: 24px 1fr 1fr; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .guarantee-icon { font-size: 14px; text-align: center; }
+    .guarantee-row input {
+      padding: 7px 9px; border: 1px solid #E8E3DC; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 300;
+      color: #1A1A1A; background: #FDFCFA; outline: none; width: 100%;
+    }
+    .guarantee-row input:focus { border-color: #1A1A1A; background: white; }
+
+    /* ── Nav link rows ── */
+    .nav-link-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+    .nav-link-row input {
+      padding: 8px 10px; border: 1px solid #E8E3DC; border-radius: 2px;
+      font-family: 'Jost', sans-serif; font-size: 11px; font-weight: 300;
+      color: #1A1A1A; background: #FDFCFA; outline: none; width: 100%;
+    }
+    .nav-link-row input:focus { border-color: #1A1A1A; background: white; }
+
+    /* ── Image picker ── */
+    .image-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; margin-top: 6px; }
+    .img-thumb {
+      aspect-ratio: 1; border-radius: 2px; overflow: hidden; cursor: pointer;
+      border: 2px solid transparent; transition: border-color 0.12s;
+      position: relative; background: #EDE8E0;
+    }
+    .img-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .img-thumb.selected { border-color: #1A1A1A; }
+    .img-thumb .slot-tag {
+      position: absolute; bottom: 3px; left: 3px;
+      background: #1A1A1A; color: white; font-size: 7px;
+      letter-spacing: 0.06em; padding: 1px 4px; border-radius: 1px; text-transform: uppercase;
+    }
+
+    /* ── Divider ── */
+    .hr { border: none; border-top: 1px solid #EDE8E0; margin: 20px 0; }
+
+    /* ── Email type toggle ── */
+    .email-type-toggle {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 6px;
+      margin-bottom: 20px;
+      background: #F5F0EA;
+      padding: 4px;
+      border-radius: 3px;
+    }
+    .email-type-btn {
+      padding: 8px 6px;
+      border: none;
+      border-radius: 2px;
+      background: transparent;
+      cursor: pointer;
+      font-family: 'Jost', sans-serif;
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.10em;
+      text-transform: uppercase;
+      color: #A8A19A;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .email-type-btn.active { background: white; color: #1A1A1A; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+    /* ── Preview area ── */
+    .preview-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+    .preview-title { font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(26,26,26,0.38); }
+    .preview-actions { display: flex; gap: 8px; }
+    .preview-shell { background: #EDE8E0; border-radius: 4px; padding: 24px 20px; margin-bottom: 20px; overflow-x: auto; }
+    .preview-frame { width: 600px; border: none; display: block; margin: 0 auto; background: white; border-radius: 2px; box-shadow: 0 2px 20px rgba(0,0,0,0.08); }
+    .code-shell { background: #111; border-radius: 4px; overflow: hidden; }
+    .code-toolbar { display: flex; align-items: center; justify-content: space-between; padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+    .code-toolbar-label { font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+    .code-scroll { padding: 16px; max-height: 220px; overflow-y: auto; }
+    .code-scroll pre { font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace; font-size: 11px; color: #C9B9A8; line-height: 1.65; white-space: pre-wrap; word-break: break-all; }
+
+    /* ── Empty state ── */
+    .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 360px; text-align: center; color: rgba(26,26,26,0.22); gap: 12px; }
+    .empty-state p { font-size: 11px; letter-spacing: 0.10em; text-transform: uppercase; line-height: 1.9; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { height: auto; position: static; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── HEADER ── -->
+  <header class="header">
+    <span class="header-brand">eCom <span>Cabal</span></span>
+    <div class="header-div"></div>
+    <span class="header-tag">EDM Generator</span>
+  </header>
+
+  <div class="layout">
+
+    <!-- ══════════════════════════════════════════════
+         SIDEBAR
+    ═══════════════════════════════════════════════ -->
+    <aside class="sidebar">
+
+      <!-- Mode tabs -->
+      <div class="mode-tabs">
+        <button class="mode-tab active" id="mode-generate" onclick="setMode('generate')">Generate</button>
+        <button class="mode-tab" id="mode-brand" onclick="setMode('brand')">Set Your Brand</button>
+      </div>
+
+      <!-- ── GENERATE PANEL ── -->
+      <div class="sidebar-panel" id="panel-generate">
+
+        <div class="section-label" style="margin-bottom:10px;">Email Type</div>
+
+        <div class="email-type-toggle">
+          <button class="email-type-btn active" id="etype-abandoned" onclick="setEmailType('abandoned')">Abandoned Cart</button>
+          <button class="email-type-btn" id="etype-campaign" onclick="setEmailType('campaign')">Campaign</button>
+          <button class="email-type-btn" id="etype-postpurchase" onclick="setEmailType('postpurchase')">Post Purchase</button>
+        </div>
+
+        <div class="section-label" style="margin-bottom:14px;">Template</div>
+
+        <div class="type-tabs">
+          <button class="type-tab active" id="tab-product" onclick="setType('product')">
+            Single Product
+            <span>hero + ritual copy</span>
+          </button>
+          <button class="type-tab" id="tab-collection" onclick="setType('collection')">
+            Collection
+            <span>hero + 8-product grid</span>
+          </button>
+        </div>
+
+        <div class="section-label">URL</div>
+
+        <div class="url-row">
+          <input type="url" id="url-input" placeholder="https://yourstore.com/products/…" />
+          <button class="btn btn-dark" id="fetch-btn" onclick="doFetch()">Fetch →</button>
+        </div>
+        <div class="status-msg" id="status-msg"></div>
+
+        <!-- Fields shown post-fetch -->
+        <div id="fields-wrap" class="hidden">
+
+          <div class="section-label">Copy</div>
+
+          <div class="field">
+            <label>Preheader</label>
+            <input type="text" id="f-preheader" />
+          </div>
+          <div class="field">
+            <label>Label <span class="field-hint" style="display:inline">(small caps above headline)</span></label>
+            <input type="text" id="f-label" />
+          </div>
+          <div class="field">
+            <label>Headline — use \n for line break</label>
+            <input type="text" id="f-headline" />
+          </div>
+          <div class="field">
+            <label>Body Copy</label>
+            <textarea id="f-body"></textarea>
+          </div>
+
+          <div class="field">
+            <label>CTA Button Text</label>
+            <input type="text" id="f-cta" value="Complete your order" />
+          </div>
+
+          <div id="postpurchase-fields" class="hidden">
+            <div class="field">
+              <label>Discount Code <span class="field-hint" style="display:inline">(auto-applied to all cart links)</span></label>
+              <input type="text" id="f-discount" placeholder="e.g. UPSELL10" style="text-transform:uppercase; letter-spacing:0.06em;" oninput="this.value=this.value.toUpperCase()" />
+            </div>
+          </div>
+
+          <div id="product-copy-fields" class="hidden">
+            <div class="field">
+              <label>Ritual Copy — dark (features, 2–3 sentences)</label>
+              <textarea id="f-ritual1"></textarea>
+            </div>
+            <div class="field">
+              <label>Ritual Copy — italic closer</label>
+              <input type="text" id="f-ritual2" />
+            </div>
+          </div>
+
+          <div class="section-label">Images</div>
+          <p class="field-hint" style="margin-bottom:10px;">Click a thumbnail to select it for each slot.</p>
+
+          <div id="product-img-fields" class="hidden">
+            <div class="field">
+              <label>Hero Image</label>
+              <div class="image-grid" id="picker-hero"></div>
+            </div>
+            <div class="field">
+              <label>Mid Image</label>
+              <div class="image-grid" id="picker-mid"></div>
+            </div>
+            <div class="field">
+              <label>Third Image</label>
+              <div class="image-grid" id="picker-third"></div>
+            </div>
+          </div>
+
+          <div id="collection-img-fields" class="hidden">
+            <div class="field">
+              <label>Hero Image</label>
+              <div class="image-grid" id="picker-hero-col"></div>
+            </div>
+          </div>
+
+          <hr class="hr">
+          <button class="btn btn-dark btn-full" onclick="generateEmail()">Generate Email →</button>
+        </div>
+
+      </div><!-- /panel-generate -->
+
+      <!-- ── BRAND PANEL ── -->
+      <div class="sidebar-panel hidden" id="panel-brand">
+
+        <div class="section-label">Logo</div>
+
+        <div class="field">
+          <label>Logo Image URL</label>
+          <input type="url" id="b-logo-url" value="https://reneue.com.au/cdn/shop/files/Mesa_de_trabajo_1_copia_1.png?v=1706433726&width=240" />
+        </div>
+        <div class="field">
+          <label>Logo Width (px)</label>
+          <input type="number" id="b-logo-width" value="80" min="40" max="300" />
+        </div>
+
+        <div class="section-label">Nav Links</div>
+        <p class="field-hint" style="margin-bottom:10px;">Label — URL (3 links shown in email header)</p>
+
+        <div class="nav-link-row">
+          <input type="text" id="b-nav1-text" value="Home Decor" placeholder="Label" />
+          <input type="url" id="b-nav1-url" value="https://reneue.com.au/collections/home" placeholder="URL" />
+        </div>
+        <div class="nav-link-row">
+          <input type="text" id="b-nav2-text" value="Self-Care" placeholder="Label" />
+          <input type="url" id="b-nav2-url" value="https://reneue.com.au/collections/selfcare" placeholder="URL" />
+        </div>
+        <div class="nav-link-row">
+          <input type="text" id="b-nav3-text" value="Shop All" placeholder="Label" />
+          <input type="url" id="b-nav3-url" value="https://reneue.com.au/collections/all" placeholder="URL" />
+        </div>
+
+        <div class="section-label" style="margin-top:20px;">Colours</div>
+
+        <div class="color-field">
+          <label>Primary (buttons, icons, dark text)</label>
+          <div class="color-row">
+            <input type="color" id="cp-primary" value="#331E1E" oninput="syncColor('primary', this.value)">
+            <input type="text" id="ch-primary" class="color-hex" value="#331E1E" oninput="syncHex('primary', this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-field">
+          <label>Email Background</label>
+          <div class="color-row">
+            <input type="color" id="cp-bg" value="#FAF7F2" oninput="syncColor('bg', this.value)">
+            <input type="text" id="ch-bg" class="color-hex" value="#FAF7F2" oninput="syncHex('bg', this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-field">
+          <label>Accent Band (header &amp; headline)</label>
+          <div class="color-row">
+            <input type="color" id="cp-accent" value="#F1E5D4" oninput="syncColor('accent', this.value)">
+            <input type="text" id="ch-accent" class="color-hex" value="#F1E5D4" oninput="syncHex('accent', this.value)" maxlength="7">
+          </div>
+        </div>
+        <div class="color-field">
+          <label>Muted Band (cart block, trust row)</label>
+          <div class="color-row">
+            <input type="color" id="cp-sand" value="#EDE8E0" oninput="syncColor('sand', this.value)">
+            <input type="text" id="ch-sand" class="color-hex" value="#EDE8E0" oninput="syncHex('sand', this.value)" maxlength="7">
+          </div>
+        </div>
+
+        <div class="section-label" style="margin-top:4px;">Shipping Note</div>
+        <div class="field">
+          <label>Text shown below CTA buttons</label>
+          <input type="text" id="b-shipping" value="Free shipping on orders $75+" />
+        </div>
+
+        <div class="section-label">Guarantees</div>
+        <p class="field-hint" style="margin-bottom:10px;">Four trust badges shown at the bottom of every email.</p>
+
+        <div class="guarantee-row">
+          <span class="guarantee-icon">🚚</span>
+          <input type="text" id="g1-l1" value="Free shipping" placeholder="Line 1" />
+          <input type="text" id="g1-l2" value="$75+" placeholder="Line 2" />
+        </div>
+        <div class="guarantee-row">
+          <span class="guarantee-icon">↩</span>
+          <input type="text" id="g2-l1" value="30-day" placeholder="Line 1" />
+          <input type="text" id="g2-l2" value="returns" placeholder="Line 2" />
+        </div>
+        <div class="guarantee-row">
+          <span class="guarantee-icon">★</span>
+          <input type="text" id="g3-l1" value="7,500+" placeholder="Line 1" />
+          <input type="text" id="g3-l2" value="reviews" placeholder="Line 2" />
+        </div>
+        <div class="guarantee-row">
+          <span class="guarantee-icon">💳</span>
+          <input type="text" id="g4-l1" value="Afterpay" placeholder="Line 1" />
+          <input type="text" id="g4-l2" value="available" placeholder="Line 2" />
+        </div>
+
+      </div><!-- /panel-brand -->
+
+    </aside>
+
+    <!-- ══════════════════════════════════════════════
+         MAIN
+    ═══════════════════════════════════════════════ -->
+    <main class="main">
+
+      <div id="empty-state" class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="2" y="4" width="20" height="16" rx="2" stroke="#1A1A1A" stroke-width="1.2" fill="none" opacity=".3"/>
+          <path d="M2 8h20" stroke="#1A1A1A" stroke-width="1.2" opacity=".3"/>
+          <rect x="5" y="11" width="8" height="6" rx="1" stroke="#1A1A1A" stroke-width="1" fill="none" opacity=".3"/>
+          <path d="M16 12h3M16 15h2" stroke="#1A1A1A" stroke-width="1" stroke-linecap="round" opacity=".3"/>
+        </svg>
+        <p>Set your brand, pick a template,<br>paste a URL, then Generate.</p>
+      </div>
+
+      <div id="output" class="hidden">
+        <div class="preview-header">
+          <span class="preview-title">Preview</span>
+          <div class="preview-actions">
+            <button class="btn btn-sand" onclick="doDownload()">Download HTML</button>
+            <button class="btn btn-dark" id="copy-btn" onclick="doCopy()">Copy HTML</button>
+          </div>
+        </div>
+
+        <div class="preview-shell">
+          <iframe id="preview-frame" class="preview-frame" height="800" scrolling="yes"></iframe>
+        </div>
+
+        <div class="code-shell">
+          <div class="code-toolbar">
+            <span class="code-toolbar-label">Generated HTML</span>
+            <button class="btn" style="background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.45); font-size:9px; padding:5px 10px;" onclick="doCopy()">Copy</button>
+          </div>
+          <div class="code-scroll"><pre id="code-out"></pre></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+<script>
+// ─────────────────────────────────────────────────────────────────────────────
+// State
+// ─────────────────────────────────────────────────────────────────────────────
+let currentType    = 'product';
+let isAbandoned    = true;
+let isPostPurchase = false;
+let allImages      = [];
+let selected       = { hero: 0, mid: 1, third: 2, heroCol: 0 };
+let collectionData = null;
+let generatedHtml  = '';
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Brand helpers
+// ─────────────────────────────────────────────────────────────────────────────
+function getBrand() {
+  return {
+    logoUrl:   el('b-logo-url').value.trim()   || '',
+    logoWidth: el('b-logo-width').value.trim() || '80',
+    nav: [
+      { text: el('b-nav1-text').value.trim(), url: el('b-nav1-url').value.trim() },
+      { text: el('b-nav2-text').value.trim(), url: el('b-nav2-url').value.trim() },
+      { text: el('b-nav3-text').value.trim(), url: el('b-nav3-url').value.trim() },
+    ],
+    primary:  el('ch-primary').value.trim() || '#331E1E',
+    bg:       el('ch-bg').value.trim()      || '#FAF7F2',
+    accent:   el('ch-accent').value.trim()  || '#F1E5D4',
+    sand:     el('ch-sand').value.trim()    || '#EDE8E0',
+    shipping: el('b-shipping').value.trim() || 'Free shipping on orders $75+',
+    guarantees: [
+      { l1: el('g1-l1').value, l2: el('g1-l2').value },
+      { l1: el('g2-l1').value, l2: el('g2-l2').value },
+      { l1: el('g3-l1').value, l2: el('g3-l2').value },
+      { l1: el('g4-l1').value, l2: el('g4-l2').value },
+    ]
+  };
+}
+
+function syncColor(key, val) {
+  el('ch-' + key).value = val;
+}
+function syncHex(key, val) {
+  if (/^#[0-9a-fA-F]{6}$/.test(val)) el('cp-' + key).value = val;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────────────────────────────────────
+const abs = src => src.startsWith('//') ? 'https:' + src : src;
+const el  = id  => document.getElementById(id);
+const val = id  => el(id).value.trim();
+
+function setStatus(msg, type = '') {
+  const s = el('status-msg');
+  s.className = 'status-msg' + (type ? ' ' + type : '');
+  s.textContent = msg;
+}
+
+function stripHtml(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html;
+  return (d.textContent || '').replace(/\s+/g, ' ').trim();
+}
+
+function firstNSentences(text, n) {
+  const m = text.match(/[^.!?]+[.!?]+/g) || [];
+  return m.slice(0, n).join(' ').trim() || text.slice(0, 160);
+}
+
+function slugToWords(slug) {
+  return slug.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function parseUrl(url) {
+  const m = url.match(/https?:\/\/([^\/]+)\/(products|collections)\/([^\/?\s#]+)/);
+  if (!m) return null;
+  return { domain: m[1], type: m[2] === 'products' ? 'product' : 'collection', handle: m[3] };
+}
+
+function headlineHtml(raw) {
+  return raw.split(/\\n/).map(s => s.trim()).filter(Boolean).join('<br>');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Mode & type switching
+// ─────────────────────────────────────────────────────────────────────────────
+function setEmailType(type) {
+  isAbandoned    = type === 'abandoned';
+  isPostPurchase = type === 'postpurchase';
+  el('etype-abandoned').classList.toggle('active', isAbandoned);
+  el('etype-campaign').classList.toggle('active', type === 'campaign');
+  el('etype-postpurchase').classList.toggle('active', isPostPurchase);
+  // Show/hide discount code field
+  el('postpurchase-fields').classList.toggle('hidden', !isPostPurchase);
+  // Update CTA default if user hasn't touched it
+  const cta = el('f-cta');
+  const ctaDefaults = ['Complete your order', 'Shop Now', 'Shop the Collection', 'Shop with your discount'];
+  if (ctaDefaults.includes(cta.value)) {
+    if (isAbandoned)         cta.value = 'Complete your order';
+    else if (isPostPurchase) cta.value = 'Shop with your discount';
+    else                     cta.value = currentType === 'collection' ? 'Shop the Collection' : 'Shop Now';
+  }
+  // Re-populate copy defaults if data already fetched
+  if (allImages.length) {
+    if (currentType === 'product' && el('f-label').value) repopulateCopy();
+    if (currentType === 'collection' && collectionData) repopulateCollectionCopy();
+  }
+}
+
+function repopulateCopy() {
+  const name = el('f-label').value.toLowerCase();
+  if (isAbandoned) {
+    el('f-preheader').value = `${name} is still in your cart`;
+    el('f-body').value      = `The ${name} is still in your cart, waiting for the moment it was made for.`;
+  } else if (isPostPurchase) {
+    el('f-preheader').value = `a little something extra — just for you`;
+    el('f-body').value      = `We thought the ${name} might pair beautifully with what you just ordered. Add it with one click — your discount is already applied.`;
+  } else {
+    el('f-preheader').value = `made for you — ${name}`;
+    el('f-body').value      = `We think you'll love the ${name}. Here's everything you need to know before it's yours.`;
+  }
+}
+
+function repopulateCollectionCopy() {
+  const label = el('f-label').value.replace(' Collection', '').toLowerCase();
+  if (isAbandoned) {
+    el('f-preheader').value = `your ${label} cart is still waiting`;
+    el('f-body').value      = `Your cart is still waiting — and so is everything in our ${label} collection. Thoughtfully designed pieces for everyday rituals.`;
+  } else if (isPostPurchase) {
+    el('f-preheader').value = `a special offer — just for you`;
+    el('f-body').value      = `As a thank you for your recent order, we've handpicked these ${label} pieces. Add to cart with one click — your discount is already applied.`;
+  } else {
+    el('f-preheader').value = `new in — the ${label} collection`;
+    el('f-body').value      = `Thoughtfully designed pieces for everyday rituals. Here's what's new in our ${label} collection.`;
+  }
+}
+
+function setMode(mode) {
+  el('mode-generate').classList.toggle('active', mode === 'generate');
+  el('mode-brand').classList.toggle('active', mode === 'brand');
+  el('panel-generate').classList.toggle('hidden', mode !== 'generate');
+  el('panel-brand').classList.toggle('hidden', mode !== 'brand');
+}
+
+function setType(type) {
+  currentType = type;
+  el('tab-product').classList.toggle('active', type === 'product');
+  el('tab-collection').classList.toggle('active', type === 'collection');
+  el('url-input').placeholder = type === 'product'
+    ? 'https://yourstore.com/products/…'
+    : 'https://yourstore.com/collections/…';
+  el('fields-wrap').classList.add('hidden');
+  el('empty-state').classList.remove('hidden');
+  el('output').classList.add('hidden');
+  setStatus('');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Fetch
+// ─────────────────────────────────────────────────────────────────────────────
+async function doFetch() {
+  const url = val('url-input');
+  if (!url) { setStatus('Please enter a URL.', 'error'); return; }
+  const parsed = parseUrl(url);
+  if (!parsed) { setStatus('URL must include /products/ or /collections/', 'error'); return; }
+  if (parsed.type !== currentType) { setType(parsed.type); el('url-input').value = url; }
+
+  setStatus('Fetching…', 'loading');
+  el('fetch-btn').disabled = true;
+
+  try {
+    if (currentType === 'product') {
+      const res = await fetch(`https://${parsed.domain}/products/${parsed.handle}.json`);
+      if (!res.ok) throw new Error(`Product not found (${res.status})`);
+      const { product } = await res.json();
+      populateProduct(product, parsed.domain);
+    } else {
+      const res = await fetch(`https://${parsed.domain}/collections/${parsed.handle}/products.json?limit=8`);
+      if (!res.ok) throw new Error(`Collection not found (${res.status})`);
+      const { products } = await res.json();
+      if (!products.length) throw new Error('No products found in this collection.');
+      collectionData = { products, handle: parsed.handle, domain: parsed.domain };
+      populateCollection(collectionData);
+    }
+    setStatus('');
+  } catch(e) {
+    setStatus(e.message, 'error');
+  } finally {
+    el('fetch-btn').disabled = false;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Populate: Product
+// ─────────────────────────────────────────────────────────────────────────────
+function populateProduct(p) {
+  allImages = (p.images || []).map(img => abs(img.src));
+  selected  = { hero: 0, mid: Math.min(1, allImages.length - 1), third: Math.min(2, allImages.length - 1) };
+  const desc = stripHtml(p.body_html || '');
+  const name = p.title.toLowerCase();
+  el('f-preheader').value = isAbandoned
+    ? `${name} is still in your cart`
+    : isPostPurchase
+      ? `a little something extra — just for you`
+      : `made for you — ${name}`;
+  el('f-label').value     = p.title;
+  el('f-headline').value  = name;
+  el('f-body').value      = isAbandoned
+    ? `The ${name} is still in your cart, waiting for the moment it was made for.`
+    : isPostPurchase
+      ? `We thought the ${name} might pair beautifully with what you just ordered. Add it with one click — your discount is already applied.`
+      : `We think you'll love the ${name}. Here's everything you need to know before it's yours.`;
+  el('f-cta').value = isAbandoned ? 'Complete your order' : isPostPurchase ? 'Shop with your discount' : 'Shop Now';
+  el('f-ritual1').value   = firstNSentences(desc, 3) || 'Designed with intention. Every detail considered.';
+  el('f-ritual2').value   = 'The kind of thing you reach for every day.';
+  renderPicker('picker-hero',  allImages, selected.hero,  'hero');
+  renderPicker('picker-mid',   allImages, selected.mid,   'mid');
+  renderPicker('picker-third', allImages, selected.third, 'third');
+  el('product-copy-fields').classList.remove('hidden');
+  el('product-img-fields').classList.remove('hidden');
+  el('collection-img-fields').classList.add('hidden');
+  el('fields-wrap').classList.remove('hidden');
+  el('output').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Populate: Collection
+// ─────────────────────────────────────────────────────────────────────────────
+function populateCollection({ products, handle }) {
+  allImages = products.filter(p => p.images && p.images[0]).map(p => abs(p.images[0].src));
+  selected.heroCol = 0;
+  const title = slugToWords(handle);
+  el('f-preheader').value = isAbandoned
+    ? `your ${title.toLowerCase()} cart is still waiting`
+    : isPostPurchase
+      ? `a special offer — just for you`
+      : `new in — the ${title.toLowerCase()} collection`;
+  el('f-label').value     = `${title} Collection`;
+  el('f-headline').value  = isPostPurchase
+    ? `we picked these\\njust for you`
+    : `discover the\\n${title.toLowerCase()} collection`;
+  el('f-body').value      = isAbandoned
+    ? `Your cart is still waiting — and so is everything in our ${title.toLowerCase()} collection. Thoughtfully designed pieces for everyday rituals.`
+    : isPostPurchase
+      ? `As a thank you for your recent order, we've handpicked these ${title.toLowerCase()} pieces. Add to cart with one click — your discount is already applied.`
+      : `Thoughtfully designed pieces for everyday rituals. Here's what's new in our ${title.toLowerCase()} collection.`;
+  el('f-cta').value = isAbandoned ? 'Complete your order' : isPostPurchase ? 'Shop with your discount' : 'Shop the Collection';
+  renderPicker('picker-hero-col', allImages, selected.heroCol, 'heroCol');
+  el('product-copy-fields').classList.add('hidden');
+  el('product-img-fields').classList.add('hidden');
+  el('collection-img-fields').classList.remove('hidden');
+  el('fields-wrap').classList.remove('hidden');
+  el('output').classList.add('hidden');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Image picker
+// ─────────────────────────────────────────────────────────────────────────────
+const SLOT_LABELS = { hero: 'Hero', mid: 'Mid', third: 'Third', heroCol: 'Hero' };
+
+function renderPicker(containerId, images, activeIdx, slot) {
+  const wrap = el(containerId);
+  wrap.innerHTML = '';
+  images.forEach((src, i) => {
+    const div = document.createElement('div');
+    div.className = 'img-thumb' + (i === activeIdx ? ' selected' : '');
+    div.onclick = () => { selected[slot] = i; renderPicker(containerId, images, i, slot); };
+    const img = document.createElement('img');
+    img.src = src.replace(/(\?.*width=)\d+/, '$1200').replace(/&width=\d+/, '&width=200');
+    img.alt = '';
+    div.appendChild(img);
+    if (i === activeIdx) {
+      const tag = document.createElement('span');
+      tag.className = 'slot-tag';
+      tag.textContent = SLOT_LABELS[slot] || slot;
+      div.appendChild(tag);
+    }
+    wrap.appendChild(div);
+  });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generate
+// ─────────────────────────────────────────────────────────────────────────────
+function generateEmail() {
+  generatedHtml = currentType === 'product' ? buildProduct() : buildCollection();
+  const frame = el('preview-frame');
+  frame.srcdoc = generatedHtml;
+  frame.onload = () => {
+    try { frame.style.height = (frame.contentWindow.document.body.scrollHeight + 20) + 'px'; } catch(e){}
+  };
+  el('code-out').textContent = generatedHtml;
+  el('empty-state').classList.add('hidden');
+  el('output').classList.remove('hidden');
+  el('output').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Copy + Download
+// ─────────────────────────────────────────────────────────────────────────────
+function doCopy() {
+  navigator.clipboard.writeText(generatedHtml).then(() => {
+    const b = el('copy-btn'); b.textContent = 'Copied ✓';
+    setTimeout(() => b.textContent = 'Copy HTML', 2200);
+  });
+}
+function doDownload() {
+  const p    = parseUrl(val('url-input'));
+  const name = p ? `edm-${p.handle}.html` : 'edm-email.html';
+  const blob = new Blob([generatedHtml], { type: 'text/html' });
+  const a    = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: name });
+  a.click();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Template snippets
+// ─────────────────────────────────────────────────────────────────────────────
+function tplHeader(b) {
+  const navLinks = b.nav.filter(n => n.text && n.url).map((n, i, arr) =>
+    `<a href="${n.url}" style="font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; font-weight:300; letter-spacing:0.08em; color:${b.primary}; text-decoration:none;">${n.text}</a>`
+    + (i < arr.length - 1 ? `<span style="font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; color:${b.primary}30; padding:0 6px;">|</span>` : '')
+  ).join('');
+
+  return `
+  <tr>
+    <td style="padding:16px 24px; background-color:${b.accent};">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td valign="middle" align="left">
+            <img src="${b.logoUrl}" width="${b.logoWidth}" alt="Logo" style="display:block; width:${b.logoWidth}px; height:auto;" />
+          </td>
+          <td valign="middle" align="right">${navLinks}</td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+function tplTrustRow(b) {
+  const icons = [
+    `<path d="M1 3h15v13H1zM16 8h4l3 3v5h-7V8z" stroke="${b.primary}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><circle cx="5.5" cy="18.5" r="1.5" stroke="${b.primary}" stroke-width="1.5" fill="none"/><circle cx="18.5" cy="18.5" r="1.5" stroke="${b.primary}" stroke-width="1.5" fill="none"/>`,
+    `<path d="M1 4v6h6" stroke="${b.primary}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M3.51 15a9 9 0 1 0 .49-4.5" stroke="${b.primary}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
+    `<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" stroke="${b.primary}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
+    `<rect x="2" y="5" width="20" height="14" rx="2" stroke="${b.primary}" stroke-width="1.5" fill="none"/><path d="M2 10h20" stroke="${b.primary}" stroke-width="1.5"/><path d="M6 15h4" stroke="${b.primary}" stroke-width="1.5" stroke-linecap="round"/>`,
+  ];
+  const cells = b.guarantees.map((g, i) => `
+          <td align="center" valign="top" width="25%" style="padding:4px 6px;">
+            <table border="0" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto 8px auto;"><tr><td>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:block;">${icons[i]}</svg>
+            </td></tr></table>
+            <p class="trust-label" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; font-weight:300; letter-spacing:0.05em; color:#7A746E; text-align:center; line-height:1.5;">${g.l1}<br>${g.l2}</p>
+          </td>`).join('');
+  return `
+  <tr>
+    <td style="background-color:${b.sand}; padding:24px 16px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>${cells}</tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+function tplCtaRow(b, href, ctaText) {
+  return `
+  <tr>
+    <td style="padding:24px 24px 0 24px; background-color:${b.bg};">
+      <a href="${href}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:18px 32px; border-radius:2px; text-align:center;">
+        ${ctaText} &nbsp;&#8594;
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:10px 24px 28px 24px; background-color:${b.bg};" align="center">
+      <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:300; color:${b.primary}; letter-spacing:0.04em; text-align:center;">
+        ${b.shipping} &nbsp;&middot;&nbsp; Secure checkout
+      </p>
+    </td>
+  </tr>`;
+}
+
+function tplDivider(b) {
+  return `
+  ${tplTrustRow(b)}
+  <tr>
+    <td style="background-color:${b.bg}; padding:0 24px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr><td style="border-top:1px solid ${b.sand}; height:1px; font-size:0; line-height:0;">&nbsp;</td></tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+function tplCartAndFooter(b, fallbackUrl, ctaText) {
+  return `
+  <tr>
+    <td style="background-color:${b.sand}; padding:16px 24px 8px 24px;">
+      <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:400; letter-spacing:0.14em; text-transform:uppercase; color:#A8A19A;">Your cart</p>
+    </td>
+  </tr>
+  <tr>
+    <td style="background-color:${b.sand}; padding:14px 24px 20px 24px;">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td valign="top" width="88" style="padding-right:16px;">
+            <img src="{{ event.items.0.imageUrl|default:'' }}" width="88" alt="{{ event.productTitles.0|default:'' }}" style="width:88px; height:88px; display:block; border-radius:2px; object-fit:cover;" />
+          </td>
+          <td valign="middle">
+            <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:13px; font-weight:400; color:#2C2C2A; line-height:1.6;">
+              {{ event.productTitles.0|default:'' }}<br>
+              <span style="font-size:11px; font-weight:300; color:#A8A19A;">{% if event.items.0.variantTitle != 'Default Title' %}{{ event.items.0.variantTitle|default:'' }}<br>{% endif %}Qty: {{ event.items.0.quantity|default:'' }}</span><br>
+              {{ event.currencySymbols.0|default:'$' }}{{ event.items.0.price|default:'' }} {{ event.currencies.0|default:'AUD' }}
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  ${tplCtaRow(b, `{{ event.items.0.url|default:'${fallbackUrl}' }}`, ctaText)}
+  ${tplDivider(b)}`;
+}
+
+function tplDiscountBanner(b, code) {
+  if (!code) return '';
+  return `
+  <tr>
+    <td style="padding:0 24px 32px 24px; background-color:${b.bg};">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border:1px dashed ${b.primary}40; border-radius:2px;">
+        <tr>
+          <td style="padding:16px 24px;" align="center">
+            <p style="margin:0 0 5px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:400; letter-spacing:0.18em; text-transform:uppercase; color:${b.primary}60;">Your exclusive discount</p>
+            <p style="margin:0 0 5px 0; font-family:'SF Mono', 'Fira Code', Courier, monospace; font-size:22px; font-weight:400; letter-spacing:0.14em; color:${b.primary};">${code.toUpperCase()}</p>
+            <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; font-weight:300; color:${b.primary}60; letter-spacing:0.04em;">Auto-applied at checkout — just click any product below</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>`;
+}
+
+function emailHead(b, isColl) {
+  const collExtra = isColl ? `
+    .product-cell { width:100% !important; display:block !important; padding:0 0 24px 0 !important; }
+    .product-cell a img { width:100% !important; max-width:100% !important; height:auto !important; }
+    .product-grid-table { width:100% !important; }` : '';
+  return `<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@300;400&display=swap" rel="stylesheet" type="text/css" />
+<style type="text/css">
+  @media only screen and (max-width:620px) {
+    .email-wrapper { width:100% !important; max-width:100% !important; }
+    .mobile-padding { padding:28px 20px !important; }
+    .hero-overlay-text { font-size:26px !important; line-height:1.2 !important; }
+    .body-text { font-size:15px !important; line-height:1.8 !important; }
+    .trust-label { font-size:9px !important; }
+    img { max-width:100% !important; height:auto !important; }${collExtra}
+  }
+</style>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Build: Product email
+// ─────────────────────────────────────────────────────────────────────────────
+function buildProduct() {
+  const b          = getBrand();
+  const productUrl = val('url-input');
+  const heroSrc    = allImages[selected.hero]  || '';
+  const midSrc     = allImages[selected.mid]   || '';
+  const thirdSrc   = allImages[selected.third] || '';
+  const preheader  = val('f-preheader');
+  const label      = val('f-label');
+  const headline   = headlineHtml(val('f-headline'));
+  const body       = val('f-body');
+  const ctaText    = val('f-cta') || (isAbandoned ? 'Complete your order' : 'Shop Now');
+  const ritual1    = val('f-ritual1');
+  const ritual2    = val('f-ritual2');
+  const discountCode = val('f-discount');
+  const parsed2    = parseUrl(productUrl);
+  const imgHref    = isAbandoned
+    ? `{{ event.items.0.url|default:'${productUrl}' }}`
+    : isPostPurchase && parsed2
+      ? `https://${parsed2.domain}/cart/{{ event.items.0.ProductID|default:'' }}:1${discountCode ? '?discount=' + encodeURIComponent(discountCode) : ''}`
+      : productUrl;
+  const greeting   = isAbandoned
+    ? `{{ person.first_name|default:'' }}, you were this close.`
+    : isPostPurchase
+      ? `{{ person.first_name|default:'' }}, thank you for your order.`
+      : `{{ person.first_name|default:'' }}, this one's for you.`;
+
+  return `${emailHead(b, false)}
+
+<div style="display:none; font-size:1px; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">${preheader} &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+
+<table class="email-wrapper" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color:${b.bg}; max-width:600px; overflow:hidden;">
+  ${tplHeader(b)}
+
+  <tr>
+    <td style="padding:0; font-size:0; line-height:0;">
+      <a href="${imgHref}" target="_blank" style="display:block; text-decoration:none;">
+        <img src="${heroSrc}" width="600" alt="${label}" style="width:100%; max-width:600px; height:auto; display:block; border:0;" />
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:22px 28px 28px 28px; background-color:${b.accent};">
+      <p style="margin:0 0 4px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.18em; text-transform:uppercase; color:${b.primary}80; line-height:1;">${label}</p>
+      <p class="hero-overlay-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:36px; font-weight:300; font-style:italic; line-height:1.15; color:${b.primary};">${headline}</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="mobile-padding" style="padding:40px 52px 28px 52px; background-color:${b.bg};">
+      <p style="margin:0 0 10px 0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:20px; font-weight:300; color:#2C2C2A; text-align:center; line-height:1.5;">${greeting}</p>
+      <p class="body-text" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:14px; font-weight:300; color:#7A746E; text-align:center; line-height:1.8;">${body}</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0 24px 36px 24px; background-color:${b.bg};">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td align="center">
+            <a href="${imgHref}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:17px 32px; border-radius:2px; text-align:center;">${ctaText} &nbsp;&#8594;</a>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-top:10px;">
+            <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:300; color:${b.primary}; letter-spacing:0.04em; text-align:center;">${b.shipping}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0; font-size:0; line-height:0;">
+      <a href="${imgHref}" target="_blank">
+        <img src="${midSrc}" width="600" alt="${label}" style="width:100%; max-width:600px; height:auto; display:block;" />
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="mobile-padding" style="padding:44px 52px 36px 52px; background-color:${b.bg};">
+      <p class="body-text" style="margin:0 0 16px 0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:17px; font-weight:300; color:#2C2C2A; line-height:1.85;">${ritual1}</p>
+      <p class="body-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:17px; font-weight:300; color:#7A746E; line-height:1.85; font-style:italic;">${ritual2}</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0; font-size:0; line-height:0;">
+      <a href="${imgHref}" target="_blank">
+        <img src="${thirdSrc}" width="600" alt="${label}" style="width:100%; max-width:600px; height:auto; display:block;" />
+      </a>
+    </td>
+  </tr>
+
+  ${isAbandoned
+    ? tplCartAndFooter(b, productUrl, ctaText)
+    : isPostPurchase
+      ? tplDiscountBanner(b, discountCode) + tplCtaRow(b, imgHref, ctaText) + tplDivider(b)
+      : tplCtaRow(b, productUrl, ctaText) + tplDivider(b)}
+</table>`;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Build: Collection email
+// ─────────────────────────────────────────────────────────────────────────────
+function buildCollection() {
+  const b        = getBrand();
+  const collUrl  = val('url-input');
+  const { products, handle, domain } = collectionData;
+  const heroSrc  = allImages[selected.heroCol] || '';
+  const preheader = val('f-preheader');
+  const label     = val('f-label');
+  const headline  = headlineHtml(val('f-headline'));
+  const body      = val('f-body');
+  const discountCode = val('f-discount');
+  const ctaText   = val('f-cta') || (isAbandoned ? 'Complete your order' : isPostPurchase ? 'Shop with your discount' : 'Shop the Collection');
+  const btnHref   = isAbandoned ? `{{ event.items.0.url|default:'${collUrl}' }}` : collUrl;
+  const greeting  = isAbandoned
+    ? `{{ person.first_name|default:'' }}, you left something behind.`
+    : isPostPurchase
+      ? `{{ person.first_name|default:'' }}, thank you for your order.`
+      : `{{ person.first_name|default:'' }}, we picked these for you.`;
+
+  function pad4(arr) { const a = [...arr]; while (a.length < 4) a.push(null); return a; }
+
+  function productCard(p) {
+    if (!p) return `<td width="25%" style="padding:0 6px 20px 6px;"></td>`;
+    const imgSrc    = p.images && p.images[0] ? abs(p.images[0].src).replace(/&width=\d+/, '&width=600') : '';
+    const variantId = p.variants && p.variants[0] ? p.variants[0].id : null;
+    const pUrl      = isPostPurchase && variantId
+      ? `https://${domain}/cart/${variantId}:1${discountCode ? '?discount=' + encodeURIComponent(discountCode) : ''}`
+      : `https://${domain}/products/${p.handle}`;
+    const kicker = p.product_type ? p.product_type.toLowerCase() : '';
+
+    let priceHtml = '';
+    if (p.variants && p.variants[0]) {
+      const v          = p.variants[0];
+      const price      = parseFloat(v.price);
+      const compareAt  = parseFloat(v.compare_at_price);
+      if (v.compare_at_price && compareAt > price) {
+        priceHtml = `<span style="text-decoration:line-through; color:#A8A19A; margin-right:5px;">$${compareAt.toFixed(2)}</span><span style="color:#B85C5C;">$${price.toFixed(2)}</span>`;
+      } else {
+        priceHtml = `<span style="color:${b.primary};">$${price.toFixed(2)}</span>`;
+      }
+    }
+
+    return `
+          <td class="product-cell" width="25%" valign="top" style="padding:0 6px 20px 6px;">
+            <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block;">
+              <img src="${imgSrc}" width="132" alt="${p.title}" style="width:100%; height:auto; display:block; border-radius:2px;" />
+              <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
+              ${kicker ? `<p style="margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.05em; color:#A8A19A; line-height:1.4;">${kicker}</p>` : ''}
+              <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:10px; font-weight:300; line-height:1.5;">${priceHtml}</p>
+            </a>
+          </td>`;
+  }
+
+  const eight = products.slice(0, 8);
+  const row1  = pad4(eight.slice(0, 4)).map(productCard).join('');
+  const row2  = pad4(eight.slice(4, 8)).map(productCard).join('');
+
+  return `${emailHead(b, true)}
+
+<div style="display:none; font-size:1px; line-height:1px; max-height:0px; max-width:0px; opacity:0; overflow:hidden;">${preheader} &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;</div>
+
+<table class="email-wrapper" border="0" cellpadding="0" cellspacing="0" width="600" style="background-color:${b.bg}; max-width:600px; overflow:hidden;">
+  ${tplHeader(b)}
+
+  <tr>
+    <td style="padding:0; font-size:0; line-height:0;">
+      <a href="${collUrl}" target="_blank" style="display:block; text-decoration:none;">
+        <img src="${heroSrc}" width="600" alt="${label}" style="width:100%; max-width:600px; height:auto; display:block; border:0;" />
+      </a>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:22px 28px 28px 28px; background-color:${b.accent};">
+      <p style="margin:0 0 4px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.18em; text-transform:uppercase; color:${b.primary}80; line-height:1;">${label}</p>
+      <p class="hero-overlay-text" style="margin:0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:36px; font-weight:300; font-style:italic; line-height:1.15; color:${b.primary};">${headline}</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td class="mobile-padding" style="padding:40px 52px 28px 52px; background-color:${b.bg};">
+      <p style="margin:0 0 10px 0; font-family:'Cormorant Garamond', Georgia, 'Times New Roman', serif; font-size:20px; font-weight:300; color:#2C2C2A; text-align:center; line-height:1.5;">${greeting}</p>
+      <p class="body-text" style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:14px; font-weight:300; color:#7A746E; text-align:center; line-height:1.8;">${body}</p>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0 24px 44px 24px; background-color:${b.bg};">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td align="center">
+            <a href="${btnHref}" target="_blank" style="display:block; background-color:${b.primary}; color:${b.bg}; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:400; letter-spacing:0.16em; text-transform:uppercase; text-decoration:none; padding:17px 32px; border-radius:2px; text-align:center;">${ctaText} &nbsp;&#8594;</a>
+          </td>
+        </tr>
+        <tr>
+          <td align="center" style="padding-top:10px;">
+            <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:11px; font-weight:300; color:${b.primary}; letter-spacing:0.04em; text-align:center;">${b.shipping}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  ${isPostPurchase ? tplDiscountBanner(b, discountCode) : ''}
+
+  <tr>
+    <td style="padding:0 24px 14px 24px; background-color:${b.bg};">
+      <table border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>
+          <td style="border-top:1px solid ${b.sand}; padding-top:28px;">
+            <p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:400; letter-spacing:0.18em; text-transform:uppercase; color:${b.primary}60; text-align:center;">${isPostPurchase ? 'handpicked for you' : 'From the ' + label}</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+
+  <tr>
+    <td style="padding:0 16px 0 16px; background-color:${b.bg};">
+      <table class="product-grid-table" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>${row1}</tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:0 16px 32px 16px; background-color:${b.bg};">
+      <table class="product-grid-table" border="0" cellpadding="0" cellspacing="0" width="100%">
+        <tr>${row2}</tr>
+      </table>
+    </td>
+  </tr>
+
+  ${isAbandoned
+    ? tplCartAndFooter(b, collUrl, ctaText)
+    : tplCtaRow(b, collUrl, ctaText) + tplDivider(b)}
+</table>`;
+}
+</script>
+</body>
+</html>
