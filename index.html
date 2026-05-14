@@ -1227,12 +1227,13 @@ function buildCollection() {
       : `https://${domain}/products/${p.handle}`;
     const kicker     = p.product_type ? p.product_type.toLowerCase() : '';
     const tagPrefix  = val('f-tag-prefix');
-    const tagBadge   = tagPrefix && p.tags
+    const badgeTexts = tagPrefix && p.tags
       ? (p.tags.split ? p.tags.split(',') : p.tags)
           .map(t => t.trim())
-          .find(t => t.toLowerCase().startsWith(tagPrefix.toLowerCase()))
-      : null;
-    const badgeText  = tagBadge ? tagBadge.slice(tagPrefix.length).replace(/^[:_\-\s]+/, '') : '';
+          .filter(t => t.toLowerCase().startsWith(tagPrefix.toLowerCase()))
+          .map(t => t.slice(tagPrefix.length).replace(/^[:_\-\s]+/, '').trim())
+          .filter(Boolean)
+      : [];
 
     let priceHtml = '';
     if (p.variants && p.variants[0]) {
@@ -1247,12 +1248,15 @@ function buildCollection() {
     }
 
     const badgeFontSize = Math.max(7, Math.round(b.sizeProduct * 0.75));
+    const badgeStack    = badgeTexts.map(txt =>
+      `<span style="display:block; background:rgba(255,255,255,0.95); font-family:Jost, Helvetica, Arial, sans-serif; font-size:${badgeFontSize}px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#1A1A1A; padding:3px 8px; line-height:1.6; white-space:nowrap; margin-bottom:3px;">${txt}</span>`
+    ).join('');
     return `
           <td class="product-cell" width="${w}" valign="top" style="padding:0 6px 20px 6px;">
             <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block;">
               <div style="position:relative; line-height:0; font-size:0; border-radius:2px; overflow:hidden;">
                 <img src="${imgSrc}" width="132" alt="${p.title}" style="width:100%; height:auto; display:block;" />
-                ${badgeText ? `<span style="position:absolute; top:7px; left:7px; display:inline-block; background:rgba(255,255,255,0.95); font-family:Jost, Helvetica, Arial, sans-serif; font-size:${badgeFontSize}px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#1A1A1A; padding:3px 8px; line-height:1.6; white-space:nowrap;">${badgeText}</span>` : ''}
+                ${badgeStack ? `<div style="position:absolute; top:7px; left:7px; line-height:0; font-size:0;">${badgeStack}</div>` : ''}
               </div>
               <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeProduct}px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
               <p style="margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-weight:300; line-height:1.4;">${priceHtml}</p>
