@@ -1248,19 +1248,19 @@ function buildCollection() {
     }
 
     const badgeFontSize = Math.max(7, Math.round(b.sizeProduct * 0.75));
-    const badgeStack    = badgeTexts.map(txt =>
-      `<div style="margin-bottom:3px;"><span style="display:inline-block; background:rgba(255,255,255,0.95); font-family:Jost, Helvetica, Arial, sans-serif; font-size:${badgeFontSize}px; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:#1A1A1A; padding:3px 8px; line-height:1.6; white-space:nowrap;">${txt}</span></div>`
+    const badgeChips    = badgeTexts.map(txt =>
+      `<div style="display:block; margin-bottom:3px; line-height:normal;"><span style="display:inline-block; border:1px solid #D8D2CA; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${badgeFontSize}px; font-weight:500; letter-spacing:0.10em; text-transform:uppercase; color:#2C2C2A; background:#FFFFFF; padding:2px 7px; line-height:1.7; white-space:nowrap;">${txt}</span></div>`
     ).join('');
     return `
           <td class="product-cell" width="${w}" valign="top" style="padding:0 6px 20px 6px;">
-            <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block;">
-              <div style="position:relative; line-height:0; font-size:0; border-radius:2px; overflow:hidden;">
+            <a href="${pUrl}" target="_blank" style="text-decoration:none; display:block; color:inherit;">
+              <div style="line-height:0; font-size:0; border-radius:2px; overflow:hidden;">
                 <img src="${imgSrc}" width="132" alt="${p.title}" style="width:100%; height:auto; display:block;" />
-                ${badgeStack ? `<div style="position:absolute; top:7px; left:7px; line-height:0; font-size:0;">${badgeStack}</div>` : ''}
               </div>
-              <p style="margin:8px 0 2px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeProduct}px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</p>
-              <p style="margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-weight:300; line-height:1.4;">${priceHtml}</p>
-              ${kicker ? `<p style="margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.05em; color:#A8A19A; line-height:1.4;">${kicker}</p>` : ''}
+              ${badgeChips ? `<div style="padding:6px 0 2px 0;">${badgeChips}</div>` : ''}
+              <div style="display:block; margin:${badgeChips ? '2px' : '8px'} 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:${b.sizeProduct}px; font-weight:400; color:#2C2C2A; line-height:1.4;">${p.title}</div>
+              <div style="display:block; margin:0 0 3px 0; font-family:Jost, Helvetica, Arial, sans-serif; font-weight:300; line-height:1.5;">${priceHtml}</div>
+              ${kicker ? `<div style="display:block; margin:0; font-family:Jost, Helvetica, Arial, sans-serif; font-size:9px; font-weight:300; letter-spacing:0.05em; color:#A8A19A; line-height:1.4;">${kicker}</div>` : ''}
             </a>
           </td>`;
   }
